@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Test Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; color: #1e293b; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, #1e3a5f 0%, #7c3aed 100%); padding: 36px 40px; }
+  .header h1 { color: white; font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; }
+  .header .sub { color: #c4b5fd; margin-top: 6px; font-size: 0.9rem; }
+  .header .prompt-box { margin-top: 14px; background: rgba(255,255,255,0.1); border-left: 4px solid #a78bfa; padding: 10px 16px; border-radius: 0 8px 8px 0; color: #e9d5ff; font-size: 0.95rem; }
+
+  /* SUMMARY CARDS */
+  .summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; padding: 24px 40px; }
+  .card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-top: 4px solid #e2e8f0; }
+  .card.total  { border-color: #6366f1; }
+  .card.pass   { border-color: #22c55e; }
+  .card.fail   { border-color: #ef4444; }
+  .card.warn   { border-color: #f59e0b; }
+  .card.score  { border-color: #0ea5e9; }
+  .card .num   { font-size: 2.2rem; font-weight: 800; }
+  .card.total .num { color: #6366f1; }
+  .card.pass  .num { color: #22c55e; }
+  .card.fail  .num { color: #ef4444; }
+  .card.warn  .num { color: #f59e0b; }
+  .card.score .num { color: #0ea5e9; }
+  .card .lbl { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 600; }
+
+  /* PROGRESS BAR */
+  .progress-wrap { padding: 0 40px 20px; }
+  .progress-bar { height: 10px; background: #e2e8f0; border-radius: 10px; overflow: hidden; display: flex; }
+  .progress-pass { background: #22c55e; transition: width 0.5s; }
+  .progress-fail { background: #ef4444; }
+  .progress-warn { background: #f59e0b; }
+  .progress-labels { display: flex; gap: 20px; margin-top: 8px; font-size: 0.8rem; color: #64748b; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+  /* TABLE */
+  .section { padding: 0 40px 40px; }
+  .section-title { font-size: 1rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
+
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  thead { background: #1e293b; color: white; }
+  thead th { padding: 14px 16px; text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
+  tbody tr:hover { background: #f8fafc; }
+  tbody td { padding: 14px 16px; font-size: 0.88rem; vertical-align: middle; }
+  .tc-num { font-weight: 700; color: #6366f1; }
+  .tc-action { font-family: monospace; background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-size: 0.78rem; color: #475569; }
+  .tc-desc { color: #1e293b; }
+  .tc-url { font-family: monospace; font-size: 0.75rem; color: #94a3b8; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-pass { background: #dcfce7; color: #15803d; }
+  .badge-fail { background: #fee2e2; color: #b91c1c; }
+  .badge-warn { background: #fef3c7; color: #92400e; }
+  .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* UI SCORE */
+  .ui-score { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; }
+  .score-pill { padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; }
+  .score-good { background: #dcfce7; color: #15803d; }
+  .score-mid  { background: #fef3c7; color: #92400e; }
+  .score-bad  { background: #fee2e2; color: #b91c1c; }
+
+  /* DETAIL SECTION */
+  .detail-section { margin-top: 30px; }
+  .step-card { background: white; border-radius: 12px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
+  .step-card-header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+  .step-card-header:hover { background: #f8fafc; }
+  .step-num-badge { background: #1e293b; color: white; border-radius: 6px; padding: 4px 10px; font-size: 0.78rem; font-weight: 700; }
+  .step-title { flex: 1; font-weight: 600; color: #1e293b; font-size: 0.9rem; }
+  .step-body { padding: 16px 20px; }
+  .error-box { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px 16px; font-family: monospace; font-size: 0.82rem; color: #b91c1c; margin-bottom: 14px; }
+  .ss-wrap img { width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; }
+  .ui-issues { margin-top: 14px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 14px 16px; }
+  .ui-issues h5 { color: #0369a1; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .issue-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; font-size: 0.83rem; }
+  .sev { padding: 1px 7px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+  .sev-high   { background: #fee2e2; color: #b91c1c; }
+  .sev-medium { background: #fef3c7; color: #92400e; }
+  .sev-low    { background: #dcfce7; color: #15803d; }
+  .rec-list { margin-top: 10px; border-top: 1px solid #bae6fd; padding-top: 10px; }
+  .rec-list li { font-size: 0.82rem; color: #0369a1; margin-left: 16px; margin-bottom: 3px; }
+
+  /* EXTRA DATA BLOCKS */
+  .data-block { margin-top: 12px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; font-size: 0.82rem; }
+  .data-block-title { background: #1e293b; color: white; padding: 8px 14px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .data-block-body  { padding: 12px 14px; background: white; }
+  .link-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f8fafc; }
+  .link-row:last-child { border-bottom: none; }
+  .link-status-ok   { color: #15803d; font-weight: 700; font-size: 0.75rem; min-width: 40px; }
+  .link-status-fail { color: #b91c1c; font-weight: 700; font-size: 0.75rem; min-width: 40px; }
+  .link-url { font-family: monospace; font-size: 0.76rem; color: #475569; word-break: break-all; }
+  .struct-row { display: flex; gap: 20px; flex-wrap: wrap; }
+  .struct-item { text-align: center; background: #f8fafc; border-radius: 8px; padding: 8px 14px; }
+  .struct-item .snum { font-size: 1.4rem; font-weight: 800; color: #6366f1; }
+  .struct-item .slbl { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+  .struct-issue { background: #fef2f2; color: #b91c1c; border-radius: 6px; padding: 6px 10px; margin-top: 8px; font-size: 0.8rem; }
+  .err-msg-row { background: #fef2f2; border-left: 3px solid #ef4444; padding: 6px 10px; margin-bottom: 4px; border-radius: 0 6px 6px 0; font-size: 0.8rem; color: #7f1d1d; font-family: monospace; }
+  .form-badge { display: inline-flex; align-items: center; gap: 5px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: 6px; padding: 4px 10px; font-size: 0.78rem; font-weight: 600; margin-right: 6px; }
+  .action-tag { font-family: monospace; background: #f1f5f9; color: #334155; padding: 2px 7px; border-radius: 4px; font-size: 0.75rem; }
+
+  /* FOOTER */
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.8rem; border-top: 1px solid #e2e8f0; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>AI Test Report</h1>
+  <div class="sub">Generated on 30 May 2026, 03:11 PM</div>
+  <div class="prompt-box"><strong>Test Prompt:</strong> Test all main features of https://imarkinfotech.com including navigation, UI elements, and core functionality</div>
+</div>
+
+<!-- SUMMARY CARDS -->
+<div class="summary">
+  <div class="card total"><div class="num">15</div><div class="lbl">Total Test Cases</div></div>
+  <div class="card pass"><div class="num">14</div><div class="lbl">Passed</div></div>
+  <div class="card fail"><div class="num">1</div><div class="lbl">Failed</div></div>
+  <div class="card warn"><div class="num">0</div><div class="lbl">Warnings</div></div>
+  <div class="card score"><div class="num">93%</div><div class="lbl">Pass Rate</div></div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-wrap">
+  <div class="progress-bar">
+    <div class="progress-pass" style="width:93%"></div>
+    <div class="progress-warn" style="width:0%"></div>
+    <div class="progress-fail" style="width:7%"></div>
+  </div>
+  <div class="progress-labels">
+    <span><span class="dot" style="background:#22c55e"></span>Pass 14</span>
+    <span><span class="dot" style="background:#f59e0b"></span>Warning 0</span>
+    <span><span class="dot" style="background:#ef4444"></span>Fail 1</span>
+  </div>
+</div>
+
+<!-- TEST CASE TABLE -->
+<div class="section">
+  <div class="section-title">Test Case Summary</div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Test Case</th>
+        <th>Action</th>
+        <th>Status</th>
+        <th>UI Score</th>
+        <th>URL</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td><span class="tc-num">TC-01</span></td>
+        <td class="tc-desc">Open imarkinfotech.com homepage</td>
+        <td><span class="tc-action">navigate</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            <span style="color:#cbd5e1">—</span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-02</span></td>
+        <td class="tc-desc">Capture initial homepage state</td>
+        <td><span class="tc-action">screenshot</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            <span style="color:#cbd5e1">—</span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-03</span></td>
+        <td class="tc-desc">Verify H1/H2/H3 heading hierarchy — ensure H1 exists and no duplicates</td>
+        <td><span class="tc-action">check_text_structure</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            
+            <span class="score-pill score-mid">
+              7/10
+            </span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-04</span></td>
+        <td class="tc-desc">Check that the site logo is visible in the header</td>
+        <td><span class="tc-action">assert_visible</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            
+            <span class="score-pill score-mid">
+              7/10
+            </span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-05</span></td>
+        <td class="tc-desc">Check that the main navigation bar is visible</td>
+        <td><span class="tc-action">assert_visible</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            
+            <span class="score-pill score-mid">
+              7/10
+            </span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-06</span></td>
+        <td class="tc-desc">Check that the main hero heading (H1) is visible on the page</td>
+        <td><span class="tc-action">assert_visible</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            
+            <span class="score-pill score-mid">
+              7/10
+            </span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-07</span></td>
+        <td class="tc-desc">Hover over primary CTA button to verify hover effect and styling</td>
+        <td><span class="tc-action">hover</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            
+            <span class="score-pill score-mid">
+              7/10
+            </span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-08</span></td>
+        <td class="tc-desc">Hover over top-level navigation links to check hover effects</td>
+        <td><span class="tc-action">hover</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            
+            <span class="score-pill score-mid">
+              7/10
+            </span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-09</span></td>
+        <td class="tc-desc">Crawl and test ALL links on the page for broken URLs (4xx/5xx)</td>
+        <td><span class="tc-action">check_all_links</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            
+            <span class="score-pill score-mid">
+              7/10
+            </span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-10</span></td>
+        <td class="tc-desc">Scroll down to reveal mid-page sections (services, about, features)</td>
+        <td><span class="tc-action">scroll</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            
+            <span class="score-pill score-mid">
+              7/10
+            </span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-11</span></td>
+        <td class="tc-desc">Capture mid-page content after scrolling</td>
+        <td><span class="tc-action">screenshot</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            <span style="color:#cbd5e1">—</span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-12</span></td>
+        <td class="tc-desc">Scroll further down towards footer and contact form area</td>
+        <td><span class="tc-action">scroll</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            
+            <span class="score-pill score-mid">
+              7/10
+            </span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-13</span></td>
+        <td class="tc-desc">Submit the contact/inquiry form with empty fields to trigger validation errors</td>
+        <td><span class="tc-action">fill_form_negative</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            
+            <span class="score-pill score-mid">
+              7/10
+            </span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-14</span></td>
+        <td class="tc-desc">Verify that validation error messages appear after empty form submission</td>
+        <td><span class="tc-action">assert_error_message</span></td>
+        <td>
+          <span class="badge badge-fail">fail</span>
+        </td>
+        <td>
+          
+            <span style="color:#cbd5e1">—</span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+      <tr>
+        <td><span class="tc-num">TC-15</span></td>
+        <td class="tc-desc">Fill the contact form with valid data (name, email, message) and submit</td>
+        <td><span class="tc-action">fill_form_positive</span></td>
+        <td>
+          <span class="badge badge-pass">pass</span>
+        </td>
+        <td>
+          
+            
+            <span class="score-pill score-mid">
+              6/10
+            </span>
+          
+        </td>
+        <td class="tc-url" title="https://www.imarkinfotech.com/">https://www.imarkinfotech.com/</td>
+      </tr>
+      
+    </tbody>
+  </table>
+</div>
+
+<!-- DETAILED STEPS -->
+<div class="section">
+  <div class="section-title">Detailed Test Steps</div>
+  <div class="detail-section">
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-01</span>
+        <span class="step-title">Open imarkinfotech.com homepage</span>
+        <span class="badge badge-pass">pass</span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_00_navigate_150345.png" alt="Screenshot TC-1" />
+        </div>
+        
+
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-02</span>
+        <span class="step-title">Capture initial homepage state</span>
+        <span class="badge badge-pass">pass</span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_01_homepage_initial_150347.png" alt="Screenshot TC-2" />
+        </div>
+        
+
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-03</span>
+        <span class="step-title">Verify H1/H2/H3 heading hierarchy — ensure H1 exists and no duplicates</span>
+        <span class="badge badge-pass">pass</span>
+        
+          
+          <span class="score-pill score-mid" style="margin-left:8px">
+            UI 7/10
+          </span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+        <div class="data-block">
+          <div class="data-block-title">
+            &#182; Text Structure Check
+            &nbsp;&#10003; OK
+          </div>
+          <div class="data-block-body">
+            <div class="struct-row">
+              <div class="struct-item"><div class="snum">1</div><div class="slbl">H1</div></div>
+              <div class="struct-item"><div class="snum">14</div><div class="slbl">H2</div></div>
+              <div class="struct-item"><div class="snum">3</div><div class="slbl">H3</div></div>
+              <div class="struct-item"><div class="snum">70</div><div class="slbl">Paragraphs</div></div>
+              <div class="struct-item"><div class="snum">350</div><div class="slbl">Links</div></div>
+            </div>
+            
+          </div>
+        </div>
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_02_text_structure_150349.png" alt="Screenshot TC-3" />
+        </div>
+        
+
+        
+        <div class="ui-issues">
+          <h5>AI UI Analysis — The page has a strong visual identity and clear primary H1, but the cookie consent banner critically obscures a CTA button, semantic heading hierarchy below H1 is weak, and minor accessibility and layout concerns exist across interactive elements.</h5>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[text_structure]</span>
+            <span>The H1 'Fueling Agencies with Tools for Multi-Million Dollar Growth' exists and is prominent, but no visible H2/H3 hierarchy is present in this viewport — subtext like '400 Skilled Professionals' and stats appear as list items rather than structured headings, making semantic hierarchy unclear</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Cookie consent banner overlaps the bottom portion of the hero section, cutting off a CTA button that is partially visible beneath it, preventing user interaction with that element</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Cookie consent text uses small dark-on-white body text (~12-13px) which may fall below WCAG AA readability standards for body copy at that size</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>The star ratings area shows mixed icon sizes between Google (larger) and Clutch (slightly smaller) ratings block, creating inconsistent visual touch target sizing for potentially interactive elements</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[design]</span>
+            <span>The cookie consent modal uses a plain white background with no elevation shadow or clear visual boundary, causing it to blend with the page footer area and reducing its prominence as a required consent action</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>The 'Reject' button in the cookie banner uses a white background with an orange border and orange text — while colorful, this may not meet 3:1 contrast ratio against the white modal background for users with color deficiencies</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[content]</span>
+            <span>World map dot markers (orange pins) lack visible labels or tooltips in this view, reducing informational value of the geographic visualization for users who cannot infer locations</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Navigation bar contains 8+ items (HOME, SERVICES, HUBSPOT, SALESFORCE, MARKETO, PORTFOLIO, ABOUT, BLOG, CONTACT) which may wrap or become cramped on mid-size viewports just below desktop width</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[button]</span>
+            <span>No hover state feedback is visible on the 'REQUEST A QUOTE' CTA button or navigation items in this static screenshot — hover/focus states cannot be confirmed from screenshot alone</span>
+          </div>
+          
+          
+          <div class="rec-list">
+            <ul><li>Ensure the cookie consent banner appears as a fixed bottom bar rather than overlapping hero CTA buttons</li><li>Add proper H2/H3 semantic tags to subheadings like rating labels and feature bullets for screen reader compatibility</li><li>Add visible box-shadow or border to the cookie consent modal to separate it from page content</li><li>Verify color contrast ratio of orange text on white for the Reject button meets WCAG AA (3:1 minimum for UI components)</li><li>Consider collapsing navigation items into a mega-menu or reducing visible items to prevent overflow on smaller viewports</li><li>Add tooltip or label overlays to the world map pins to convey geographic data to all users</li><li>Ensure all interactive buttons have clearly defined :hover and :focus states with visible outlines for keyboard navigation</li></ul>
+          </div>
+          
+        </div>
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-04</span>
+        <span class="step-title">Check that the site logo is visible in the header</span>
+        <span class="badge badge-pass">pass</span>
+        
+          
+          <span class="score-pill score-mid" style="margin-left:8px">
+            UI 7/10
+          </span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_03_assert_visible_150350.png" alt="Screenshot TC-4" />
+        </div>
+        
+
+        
+        <div class="ui-issues">
+          <h5>AI UI Analysis — The logo is visible and recognizable with a professional color scheme, but accessibility concerns around alt text, contrast, and scalability need attention for full compliance.</h5>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[text_structure]</span>
+            <span>Logo contains text 'IMARK INFOTECH' rendered as an image, which may not be accessible to screen readers as a proper heading or alt-text landmark</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>The dark navy background with colored horizontal lines may create insufficient contrast for the text 'IMARK INFOTECH' depending on rendering resolution</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Logo image appears to lack visible alt text indication; if it is an <img> tag, missing or inadequate alt text would fail WCAG 2.1 criterion 1.1.1</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[design]</span>
+            <span>The decorative horizontal colored lines (red, orange, blue) above the company name are thin and may not render clearly at smaller viewport sizes or on low-DPI screens</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[layout]</span>
+            <span>The logo appears isolated without surrounding header context visible in the screenshot, making it impossible to evaluate alignment within the full header layout</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[content]</span>
+            <span>Only the logo portion is captured; no navigation, CTAs, or header utility elements are visible to confirm full header completeness</span>
+          </div>
+          
+          
+          <div class="rec-list">
+            <ul><li>Ensure the logo image has descriptive alt text, e.g., alt='iMark Infotech - Home'</li><li>Verify text contrast ratio within the logo meets WCAG AA minimum of 4.5:1 against the dark background</li><li>Provide an SVG version of the logo to ensure crisp rendering across all screen resolutions and DPI settings</li><li>Confirm the logo is wrapped in an <a href='/'> anchor tag with an appropriate aria-label for screen reader navigation</li><li>Capture and review the full header layout to validate alignment, spacing, and responsiveness of all header elements</li></ul>
+          </div>
+          
+        </div>
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-05</span>
+        <span class="step-title">Check that the main navigation bar is visible</span>
+        <span class="badge badge-pass">pass</span>
+        
+          
+          <span class="score-pill score-mid" style="margin-left:8px">
+            UI 7/10
+          </span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_04_assert_visible_150351.png" alt="Screenshot TC-5" />
+        </div>
+        
+
+        
+        <div class="ui-issues">
+          <h5>AI UI Analysis — The navigation bar is functional and visually recognizable, but suffers from small text/touch targets, potential focus indicator absence, and a slightly inconsistent two-tone header design that reduces polish.</h5>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[text_structure]</span>
+            <span>Navigation bar only visible in screenshot — no H1 or page heading structure can be confirmed from this partial view</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>White navigation text on dark blue background may meet contrast ratio, but the orange 'HOME' active state text on dark blue needs verification — some nav items appear small (~12-13px) which is below recommended 16px minimum for body/nav text</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Touch targets for navigation items appear narrow in height, potentially falling below the recommended 44x44px minimum touch target size for mobile accessibility (WCAG 2.5.5)</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[button]</span>
+            <span>'REQUEST A QUOTE' CTA button uses orange on dark blue which is visually distinct, but no hover state is visible in the static screenshot — hover feedback cannot be confirmed</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[design]</span>
+            <span>Inconsistent visual weight: support email and phone icon in the top utility bar use a lighter blue strip that feels disconnected from the main navy navigation bar below it — two-tone header lacks visual cohesion</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[layout]</span>
+            <span>The dropdown arrows on 'SERVICES', 'PORTFOLIO', and 'ABOUT' items are very small and may be difficult to distinguish or tap accurately on mobile devices</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>No visible focus indicators present on navigation links in this state — keyboard navigation accessibility cannot be confirmed, risking WCAG 2.4.7 non-compliance</span>
+          </div>
+          
+          
+          <div class="rec-list">
+            <ul><li>Increase navigation font size to at least 14-16px for improved readability</li><li>Ensure all interactive nav elements have a minimum 44x44px touch target area for mobile compliance</li><li>Add clearly visible :focus styles (e.g., outline or underline) to all navigation links for keyboard accessibility</li><li>Unify the header into a single cohesive background color or use a stronger visual separator between utility bar and main nav</li><li>Verify contrast ratio of orange active text ('HOME') against dark navy meets WCAG AA standard of 4.5:1</li><li>Increase the size of dropdown indicator arrows for better affordance and tap accuracy</li></ul>
+          </div>
+          
+        </div>
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-06</span>
+        <span class="step-title">Check that the main hero heading (H1) is visible on the page</span>
+        <span class="badge badge-pass">pass</span>
+        
+          
+          <span class="score-pill score-mid" style="margin-left:8px">
+            UI 7/10
+          </span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_05_assert_visible_150352.png" alt="Screenshot TC-6" />
+        </div>
+        
+
+        
+        <div class="ui-issues">
+          <h5>AI UI Analysis — The hero heading is visible and bold with good typographic weight, but potential right-side text clipping, an awkward line break, and absence of visible supporting content elements slightly reduce the overall UI quality.</h5>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[text_structure]</span>
+            <span>Heading appears visually prominent but semantic H1 tag cannot be confirmed from screenshot alone; heading spans two lines with a hyphenated word break ('Multi-/Million') which may affect readability and SEO</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Text appears to be cut off on the right edge of the viewport, suggesting potential overflow or insufficient padding on the right side of the hero container</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>White text on blue background appears to pass contrast ratio at first glance, but the exact blue shade should be verified to ensure WCAG AA compliance (minimum 4.5:1 for normal text, 3:1 for large text)</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[design]</span>
+            <span>The word break 'Multi-/Million Dollar' across two lines is slightly awkward typographically; consider adjusting font size or container width to achieve a more balanced line break</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[content]</span>
+            <span>Only a partial hero section is visible — no supporting subheadline, CTA button, or imagery is shown, which may indicate incomplete hero section content or a rendering issue below the fold</span>
+          </div>
+          
+          
+          <div class="rec-list">
+            <ul><li>Verify the heading is marked up as a semantic <h1> tag for proper SEO and accessibility</li><li>Add right-side padding or adjust container max-width to prevent text from being clipped at the viewport edge</li><li>Verify blue background (#1a3a8f or similar) against white text meets WCAG AA contrast ratio of at least 4.5:1</li><li>Consider adjusting font size or container width to avoid the awkward 'Multi-' hyphenation break</li><li>Ensure a supporting subheadline and primary CTA button are present below the H1 to complete the hero section</li></ul>
+          </div>
+          
+        </div>
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-07</span>
+        <span class="step-title">Hover over primary CTA button to verify hover effect and styling</span>
+        <span class="badge badge-pass">pass</span>
+        
+          
+          <span class="score-pill score-mid" style="margin-left:8px">
+            UI 7/10
+          </span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_06_hover_150354.png" alt="Screenshot TC-7" />
+        </div>
+        
+
+        
+        <div class="ui-issues">
+          <h5>AI UI Analysis — The CTA button is visually identifiable but lacks confirmed hover feedback, has potential contrast issues, and is missing focus indicators critical for accessibility compliance.</h5>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[button]</span>
+            <span>No visible hover state captured in screenshot — button appears in default state only (cyan/teal background with white bold text); hover effect cannot be confirmed from static image</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>White text on bright cyan (#00AEEF-like) background may not meet WCAG AA contrast ratio of 4.5:1 for normal text — estimated contrast ratio is borderline (~3.5:1)</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>No visible focus indicator (keyboard focus ring) present on the button, which is required for keyboard navigation accessibility</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[design]</span>
+            <span>Button corners appear sharply rounded but the border styling creates a slightly dated flat-design aesthetic with no shadow or depth cue to reinforce clickability</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[button]</span>
+            <span>Touch target appears adequate in width but vertical height may be marginal for mobile touch targets (recommended minimum 44x44px per WCAG 2.5.5)</span>
+          </div>
+          
+          
+          <div class="rec-list">
+            <ul><li>Add a clearly distinct :hover CSS state (e.g., darker teal, shadow, or scale transform) to confirm interactivity</li><li>Verify white-on-cyan contrast ratio meets WCAG AA 4.5:1 minimum using a contrast checker tool</li><li>Add a visible :focus outline or focus-visible ring for keyboard navigation accessibility</li><li>Ensure button height meets minimum 44px touch target guideline for mobile users</li><li>Consider adding a subtle box-shadow to increase perceived depth and clickability</li></ul>
+          </div>
+          
+        </div>
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-08</span>
+        <span class="step-title">Hover over top-level navigation links to check hover effects</span>
+        <span class="badge badge-pass">pass</span>
+        
+          
+          <span class="score-pill score-mid" style="margin-left:8px">
+            UI 7/10
+          </span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_07_hover_150355.png" alt="Screenshot TC-8" />
+        </div>
+        
+
+        
+        <div class="ui-issues">
+          <h5>AI UI Analysis — The CTA button has reasonable visual design but lacks confirmed hover state feedback, has potential contrast issues, and is missing focus indicators critical for accessibility compliance.</h5>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[button]</span>
+            <span>No visible hover state change captured in screenshot — button appears in default state only with no visual feedback differentiation during hover interaction</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>White bold text on bright cyan/blue background (#29ABE2 range) may not meet WCAG AA contrast ratio of 4.5:1 for normal text — estimated contrast ratio is borderline</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>No visible focus indicator/outline present on the button element, which is critical for keyboard navigation accessibility</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[design]</span>
+            <span>Button uses all-caps text which can reduce readability and is considered less accessible for users with cognitive disabilities</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Touch target appears adequately sized but padding distribution looks uneven — top/bottom padding appears smaller than left/right, potentially reducing effective touch area</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[button]</span>
+            <span>No visible cursor change or active/pressed state styling evident from the screenshot to confirm interactive affordance beyond color alone</span>
+          </div>
+          
+          
+          <div class="rec-list">
+            <ul><li>Add a distinct :hover state (e.g., darken background to #1A8CB8 or add underline) to confirm interactivity</li><li>Verify contrast ratio meets WCAG AA 4.5:1 minimum — consider darkening background to #1A7FA8</li><li>Add a visible :focus outline (e.g., 2px offset outline in a contrasting color) for keyboard users</li><li>Consider adding a subtle box-shadow or scale transform on hover/active for richer visual feedback</li><li>Consider sentence case or title case instead of ALL CAPS to improve readability</li></ul>
+          </div>
+          
+        </div>
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-09</span>
+        <span class="step-title">Crawl and test ALL links on the page for broken URLs (4xx/5xx)</span>
+        <span class="badge badge-pass">pass</span>
+        
+          
+          <span class="score-pill score-mid" style="margin-left:8px">
+            UI 7/10
+          </span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+        <div class="data-block">
+          <div class="data-block-title">
+            &#128279; Links Tested: 15
+            &nbsp;|&nbsp; Broken: 0
+          </div>
+          <div class="data-block-body">
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/" target="_blank">https://www.imarkinfotech.com/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">0</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/#" target="_blank">https://www.imarkinfotech.com/#</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/service/mobile-app-development/" target="_blank">https://www.imarkinfotech.com/service/mobile-app-development/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/service/web-development-company-india/" target="_blank">https://www.imarkinfotech.com/service/web-development-company-india/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/service/internet-marketing-services/" target="_blank">https://www.imarkinfotech.com/service/internet-marketing-services/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/seo-company-india/" target="_blank">https://www.imarkinfotech.com/seo-company-india/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/seo-outsourcing-india/" target="_blank">https://www.imarkinfotech.com/seo-outsourcing-india/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/service/seo-reseller-services/" target="_blank">https://www.imarkinfotech.com/service/seo-reseller-services/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/seo-consultant-india/" target="_blank">https://www.imarkinfotech.com/seo-consultant-india/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/service/link-building/" target="_blank">https://www.imarkinfotech.com/service/link-building/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/ppc-services-india/" target="_blank">https://www.imarkinfotech.com/ppc-services-india/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/service/reputation-management/" target="_blank">https://www.imarkinfotech.com/service/reputation-management/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/service/content-writing-services/" target="_blank">https://www.imarkinfotech.com/service/content-writing-services/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/service/dedicated-resources/" target="_blank">https://www.imarkinfotech.com/service/dedicated-resources/</a></span>
+            </div>
+            
+            <div class="link-row">
+              
+                <span class="link-status-ok">200</span>
+              
+              <span class="link-url"><a href="https://www.imarkinfotech.com/service/iphone-app-development-company/" target="_blank">https://www.imarkinfotech.com/service/iphone-app-development-company/</a></span>
+            </div>
+            
+          </div>
+        </div>
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_08_check_all_links_150426.png" alt="Screenshot TC-9" />
+        </div>
+        
+
+        
+        <div class="ui-issues">
+          <h5>AI UI Analysis — The page has a strong visual identity and clear value proposition, but is significantly hampered by an intrusive cookie consent banner that blocks the primary CTA, alongside minor accessibility contrast concerns and layout clarity issues.</h5>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Cookie consent banner overlaps significant bottom portion of hero section, obscuring CTA button and lower content — no visible close/minimize option beyond Accept/Reject</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Cookie banner cuts off what appears to be a primary CTA button at the bottom of the hero section, making it completely inaccessible without dismissing the banner first</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>White subheading text ('Unmatched Expertise: Providing top-tier SEO...') on the blue background may fall below 4.5:1 contrast ratio at the rendered font size (~14px)</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Cookie banner body text is small (~12-13px) with dark-on-white contrast that may be borderline for users with visual impairments</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Phone icon dropdown indicator in header is a very small touch target, likely under the recommended 44x44px minimum for mobile accessibility</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[text_structure]</span>
+            <span>H1 heading 'Fueling Agencies with Tools for Multi-Million Dollar Growth' is present and prominent, but the visual hierarchy between H1 and supporting subtext could be more differentiated — subtext weight is too similar to body copy</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[design]</span>
+            <span>Rating section shows mismatched star counts — Google shows 4.75/5 with what appears to be 4.5 stars rendered, and the second rating badge (Clutch) shows 4.9/5 — visual star rendering should precisely match numeric scores</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[design]</span>
+            <span>The annotation arrows/callout boxes on the world map (orange dots with bracket lines) feel visually disconnected and overlap the map in a way that reduces readability of the statistic text</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[content]</span>
+            <span>World map location dots (orange markers) have no labels or tooltips visible — users cannot determine which offices or client locations are being indicated without interaction</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[button]</span>
+            <span>The 'Reject' button in the cookie banner uses only an outline style, which visually de-emphasizes it — while intentional for dark patterns, this may not meet GDPR equal prominence requirements for consent options</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Navigation items (HUBSPOT, SALESFORCE, MARKETO) appear as flat text links without clear visual separation from dropdown items (SERVICES, PORTFOLIO, ABOUT), reducing scannability of the nav bar</span>
+          </div>
+          
+          
+          <div class="rec-list">
+            <ul><li>Implement a less intrusive cookie banner (e.g., bottom bar instead of large overlay) that does not obscure primary CTAs</li><li>Ensure all body/subheading text on blue backgrounds meets WCAG AA contrast ratio of at least 4.5:1</li><li>Add tooltip labels or a legend to world map location markers for context</li><li>Increase touch target size for phone icon dropdown to minimum 44x44px</li><li>Ensure star rating visuals precisely match numeric scores (e.g., 4.75/5 should render as 4.75 stars)</li><li>Add visible focus ring indicators to all interactive elements (nav items, buttons) for keyboard navigation compliance</li><li>Review GDPR compliance for equal visual prominence between Accept and Reject cookie options</li></ul>
+          </div>
+          
+        </div>
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-10</span>
+        <span class="step-title">Scroll down to reveal mid-page sections (services, about, features)</span>
+        <span class="badge badge-pass">pass</span>
+        
+          
+          <span class="score-pill score-mid" style="margin-left:8px">
+            UI 7/10
+          </span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_09_scroll_150427.png" alt="Screenshot TC-10" />
+        </div>
+        
+
+        
+        <div class="ui-issues">
+          <h5>AI UI Analysis — The page demonstrates strong branding and partner credibility signals but is significantly hampered by an intrusive cookie consent overlay, cut-off hero content, and several accessibility and layout consistency issues.</h5>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Cookie consent banner overlaps significant bottom portion of the viewport, obscuring page content and blocking access to the 'Welcome to iMark Infotech' section and CTA elements below</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[text_structure]</span>
+            <span>H1 heading 'Welcome to iMark Infotech - Your Global Digital Marketing' is cut off mid-sentence at the bottom of the viewport, breaking readability and semantic completeness</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Cookie consent banner text is rendered in small, low-contrast grey font on a light grey background, likely failing WCAG 2.1 AA contrast ratio of 4.5:1 for normal text</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Star rating icons in the top-left badges (Google 4.75/5, Clutch 4.9/5) use yellow stars on white background with no visible alt text or ARIA labels for screen readers</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Partner logo strip contains inconsistent badge sizes and varying visual weights (e.g., Google Premier badge has a nested inner box creating visual noise) breaking grid uniformity</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[button]</span>
+            <span>Cookie consent 'Reject' button uses a low-contrast outline style that may be easily overlooked compared to the dominant 'Accept' button, creating a dark pattern in consent UX</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[design]</span>
+            <span>Inconsistent border/shadow treatment on partner logo cards — some appear flat while others have visible borders, reducing visual cohesion across the logo strip</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>The floating scroll-to-top button (orange circle, bottom-right) has no visible tooltip or ARIA label, reducing discoverability for assistive technology users</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[content]</span>
+            <span>The sticky image/photo section on the left of the 'Welcome' section appears partially rendered with post-it notes visible but no clear context or alt description for the visual</span>
+          </div>
+          
+          
+          <div class="rec-list">
+            <ul><li>Reduce cookie banner height or use a compact bottom bar style to avoid blocking primary page content</li><li>Ensure H1 heading is fully visible on initial scroll position without being truncated</li><li>Increase cookie banner text contrast to meet WCAG 2.1 AA minimum ratio of 4.5:1</li><li>Add ARIA labels and alt text to star rating badges and partner logos for screen reader compatibility</li><li>Standardize partner logo card dimensions and border styles for visual consistency</li><li>Redesign the cookie consent to present Accept/Reject with equal visual weight to avoid dark UX patterns</li><li>Add tooltip or aria-label='Scroll to top' to the floating action button</li></ul>
+          </div>
+          
+        </div>
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-11</span>
+        <span class="step-title">Capture mid-page content after scrolling</span>
+        <span class="badge badge-pass">pass</span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_10_mid_page_content_150428.png" alt="Screenshot TC-11" />
+        </div>
+        
+
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-12</span>
+        <span class="step-title">Scroll further down towards footer and contact form area</span>
+        <span class="badge badge-pass">pass</span>
+        
+          
+          <span class="score-pill score-mid" style="margin-left:8px">
+            UI 7/10
+          </span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_11_scroll_150430.png" alt="Screenshot TC-12" />
+        </div>
+        
+
+        
+        <div class="ui-issues">
+          <h5>AI UI Analysis — The page has a solid visual structure and clear branding, but the persistent cookie consent banner significantly obstructs content, the footer/form area (the target of the test step) is inaccessible in this view, and several minor accessibility and design consistency issues reduce overall quality.</h5>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Cookie consent banner overlaps the bottom portion of the main content area, obscuring the CTA section and preventing full visibility of the page content without dismissing it first</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Test step requested scrolling to footer/contact form area, but the cookie banner and current viewport position prevent assessment of footer content — footer is not visible in this screenshot</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Cookie consent banner text is small (approximately 11-12px) and dense, making it difficult to read — especially for users with visual impairments; contrast of grey text on light grey background may fall below 4.5:1 WCAG AA ratio</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>The scroll-to-top button (orange circle, bottom-right) has a very small touch target (~40px) and lacks a visible accessible label or aria-label visible in the UI</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[button]</span>
+            <span>The 'Reject' button in the cookie banner uses an outlined style with low visual weight compared to 'Accept', which may bias user interaction — this is a dark pattern concern from a UX ethics standpoint</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[text_structure]</span>
+            <span>The main heading 'Welcome to iMark Infotech - Your Global Digital Marketing Powerhouse' appears visually as H1, but the em-dash usage and line breaks create uneven typographic rhythm across three lines</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[design]</span>
+            <span>Two 'Request a Quote' CTAs exist (top-right header button and hero section button) with slightly different styling — header uses all-caps, hero uses title case — minor inconsistency in brand voice</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[content]</span>
+            <span>Navigation items (HUBSPOT, SALESFORCE, MARKETO) listed individually without grouping under a parent menu category, making the nav bar appear cluttered on desktop viewports</span>
+          </div>
+          
+          
+          <div class="rec-list">
+            <ul><li>Implement a less intrusive cookie consent pattern (e.g., bottom slim bar) that does not cover main page content</li><li>Ensure the cookie banner text meets WCAG AA contrast ratio of 4.5:1 and increase font size to minimum 14px</li><li>Add aria-label to the scroll-to-top button and ensure touch target is at least 44x44px per WCAG 2.5.5</li><li>Standardize CTA button text casing across all instances ('REQUEST A QUOTE' vs 'Request a Quote')</li><li>Group related navigation items (HubSpot, Salesforce, Marketo) under a 'Platforms' or 'Integrations' dropdown to reduce nav clutter</li><li>Scroll page to footer and conduct a separate audit pass to evaluate contact form labeling, field validation, and footer content completeness</li></ul>
+          </div>
+          
+        </div>
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-13</span>
+        <span class="step-title">Submit the contact/inquiry form with empty fields to trigger validation errors</span>
+        <span class="badge badge-pass">pass</span>
+        
+          
+          <span class="score-pill score-mid" style="margin-left:8px">
+            UI 7/10
+          </span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+        <div style="margin-bottom:10px;">
+          <span class="form-badge">&#10007; Negative Test</span>
+          
+          
+        </div>
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_12_fill_form_negative_150602.png" alt="Screenshot TC-13" />
+        </div>
+        
+
+        
+        <div class="ui-issues">
+          <h5>AI UI Analysis — The page has a solid visual foundation with clear branding and hierarchy, but the test step cannot be executed as no inline form is present in the viewport, the cookie banner creates layout obstruction, and several accessibility concerns exist around contrast and touch targets.</h5>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[form]</span>
+            <span>No contact/inquiry form is visible on this page — the test step requires submitting a form with empty fields to trigger validation errors, but no form exists in the current viewport. Only a 'Request a Quote' CTA button is present, which likely navigates elsewhere.</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Cookie consent banner overlaps the bottom portion of the main content area, obscuring page content and reducing usable viewport height significantly.</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Cookie consent text is rendered in a light grey tone on a light grey background (#f5f5f5-like), potentially falling below WCAG 4.5:1 contrast ratio requirement for body text.</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Navigation items ('HOME', 'SERVICES', 'HUBSPOT', etc.) appear small with limited touch target size, potentially below the recommended 44x44px minimum for mobile accessibility.</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[text_structure]</span>
+            <span>The H1 heading 'Welcome to iMark Infotech - Your Global Digital Marketing Powerhouse' is visually prominent and well-structured, but the heading hierarchy below it (H2, H3) is not verifiable from this screenshot alone.</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[button]</span>
+            <span>Two 'Request a Quote' buttons exist (header and hero section) with identical styling — no visible differentiation or hover state confirmation visible in static screenshot, risking redundancy confusion.</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[design]</span>
+            <span>Cookie banner 'Reject' button uses an outlined style while 'Accept' uses a filled orange style — acceptable pattern, but the 'Reject' button's border color is faint and may not meet contrast requirements.</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[content]</span>
+            <span>The hero image (team at whiteboard) is thematically appropriate but appears cropped/cut off on the right edge without clear compositional intent, reducing visual polish.</span>
+          </div>
+          
+          
+          <div class="rec-list">
+            <ul><li>Embed an inline contact/inquiry form on the homepage or ensure the 'Request a Quote' button reveals a form modal to enable form validation testing</li><li>Increase cookie consent banner text contrast to meet WCAG AA (4.5:1) standards</li><li>Ensure all navigation touch targets meet minimum 44x44px size for mobile accessibility</li><li>Consider dismissing or minimizing the cookie banner after acceptance to prevent persistent content obstruction</li><li>Add visible :hover and :focus states to all interactive buttons for keyboard and mouse users</li><li>Differentiate the two 'Request a Quote' buttons visually or consolidate to avoid redundancy</li></ul>
+          </div>
+          
+        </div>
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-14</span>
+        <span class="step-title">Verify that validation error messages appear after empty form submission</span>
+        <span class="badge badge-fail">fail</span>
+        
+      </div>
+      <div class="step-body">
+
+        
+        <div class="error-box">&#9888; No error messages found after empty form submit — form may be missing validation</div>
+        
+
+        <!-- Form test badges -->
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_13_error_assert_error_message_150602.png" alt="Screenshot TC-14" />
+        </div>
+        
+
+        
+
+      </div>
+    </div>
+    
+    <div class="step-card">
+      <div class="step-card-header">
+        <span class="step-num-badge">TC-15</span>
+        <span class="step-title">Fill the contact form with valid data (name, email, message) and submit</span>
+        <span class="badge badge-pass">pass</span>
+        
+          
+          <span class="score-pill score-mid" style="margin-left:8px">
+            UI 6/10
+          </span>
+        
+      </div>
+      <div class="step-body">
+
+        
+
+        <!-- Form test badges -->
+        
+        <div style="margin-bottom:10px;">
+          
+          <span class="form-badge">&#10003; Positive Test</span>
+          
+        </div>
+        
+
+        <!-- Error messages found -->
+        
+
+        <!-- Text structure -->
+        
+
+        <!-- Links tested -->
+        
+
+        
+        <div class="ss-wrap" style="margin-top:12px;">
+          <img src="/screenshots/step_14_fill_form_positive_150735.png" alt="Screenshot TC-15" />
+        </div>
+        
+
+        
+        <div class="ui-issues">
+          <h5>AI UI Analysis — The homepage presents a reasonably polished hero section but critically fails the specified test step as no contact form is visible; additionally, the cookie consent overlay degrades accessibility and usability.</h5>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[form]</span>
+            <span>No contact form is visible on this screenshot — the test step requires filling a contact form, but the current view shows only the homepage hero section with no form fields present</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Cookie consent banner overlaps the bottom portion of the page content, obscuring potential interactive elements and reducing visible content area significantly</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Cookie consent banner text is small (~12px) with grey text on light grey background, likely failing WCAG 4.5:1 contrast ratio requirement</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[text_structure]</span>
+            <span>The H1 'Welcome to iMark Infotech - Your Global Digital Marketing Powerhouse' is present and well-structured, but the heading hierarchy below it cannot be verified from this view alone</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[button]</span>
+            <span>Two CTA buttons ('Request a Quote' in header and hero) use identical styling — no visual differentiation between primary and secondary priority actions, and hover states cannot be confirmed from static screenshot</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[layout]</span>
+            <span>Navigation items (HOME, SERVICES, HUBSPOT, SALESFORCE, MARKETO, PORTFOLIO, ABOUT, BLOG, CONTACT) appear compressed horizontally and may wrap or clip on smaller viewport widths</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-medium">medium</span>
+            <span style="color:#475569">[accessibility]</span>
+            <span>Cookie consent 'Reject' button uses low-contrast outline style (red border, white fill) which may not meet contrast requirements for border-only buttons</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-high">high</span>
+            <span style="color:#475569">[content]</span>
+            <span>The required contact form for the test step is entirely absent from view — user would need to navigate to a separate Contact page, suggesting a navigation/flow issue for the intended test scenario</span>
+          </div>
+          
+          <div class="issue-row">
+            <span class="sev sev-low">low</span>
+            <span style="color:#475569">[design]</span>
+            <span>Logo area and top navigation use mixed color schemes (orange, teal/blue, red) which creates slight visual inconsistency in brand color application across header elements</span>
+          </div>
+          
+          
+          <div class="rec-list">
+            <ul><li>Ensure the Contact form is accessible directly from the homepage or the test navigation should route to /contact before attempting form interaction</li><li>Redesign cookie consent banner with higher contrast text and larger font size (minimum 14px) to meet WCAG AA standards</li><li>Differentiate the two 'Request a Quote' CTA buttons visually (e.g., primary vs ghost style) to establish clear hierarchy</li><li>Add visible focus indicators to all interactive elements (buttons, nav links) for keyboard navigation compliance</li><li>Ensure the cookie banner uses a semi-transparent overlay or pushed-layout approach to avoid content occlusion</li><li>Test navigation responsiveness to prevent menu item overflow on medium-sized viewports</li><li>Increase 'Reject' button contrast by using filled background or darker border color</li></ul>
+          </div>
+          
+        </div>
+        
+
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<div class="footer">
+  AI Test Agent &bull; Powered by Claude + Playwright &bull; 30 May 2026, 03:11 PM
+</div>
+</body>
+</html>

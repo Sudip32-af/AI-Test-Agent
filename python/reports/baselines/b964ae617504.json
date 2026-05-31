@@ -1,0 +1,160 @@
+{
+  "url": "https://www.shoppersstack.com/user-signin",
+  "suite": "smart-auto",
+  "saved_at": "2026-05-30T22:29:20.780453",
+  "total": 30,
+  "passed": 26,
+  "failed": 3,
+  "steps": [
+    {
+      "description": "Open the ShoppersStack sign-in page",
+      "action": "navigate",
+      "status": "pass"
+    },
+    {
+      "description": "Capture initial state of the sign-in page",
+      "action": "screenshot",
+      "status": "pass"
+    },
+    {
+      "description": "Check for JavaScript console errors on page load",
+      "action": "check_console_errors",
+      "status": "pass"
+    },
+    {
+      "description": "Measure page load time and TTFB for the sign-in page",
+      "action": "performance_check",
+      "status": "pass"
+    },
+    {
+      "description": "Verify URL contains user-signin path",
+      "action": "assert_url",
+      "status": "pass"
+    },
+    {
+      "description": "Assert ShoppersStack brand or sign-in related text is present",
+      "action": "assert_text",
+      "status": "pass"
+    },
+    {
+      "description": "Verify heading hierarchy (H1/H2) on the sign-in page",
+      "action": "check_text_structure",
+      "status": "fail"
+    },
+    {
+      "description": "Scroll down to reveal any hidden form elements or footer content",
+      "action": "scroll",
+      "status": "pass"
+    },
+    {
+      "description": "Capture page after scroll to check full layout",
+      "action": "screenshot",
+      "status": "pass"
+    },
+    {
+      "description": "Assert email/username input field is visible on the page",
+      "action": "assert_visible",
+      "status": "pass"
+    },
+    {
+      "description": "Assert password input field is visible on the page",
+      "action": "assert_visible",
+      "status": "pass"
+    },
+    {
+      "description": "Assert the login/sign-in submit button is visible",
+      "action": "assert_visible",
+      "status": "pass"
+    },
+    {
+      "description": "FUNCTIONAL - Submit empty login form to trigger validation errors",
+      "action": "fill_form_negative",
+      "status": "pass"
+    },
+    {
+      "description": "FUNCTIONAL - Verify validation error messages appear for empty form",
+      "action": "assert_error_message",
+      "status": "fail"
+    },
+    {
+      "description": "Capture validation error state after empty form submission",
+      "action": "screenshot",
+      "status": "pass"
+    },
+    {
+      "description": "FUNCTIONAL - Type invalid email format into email field",
+      "action": "type",
+      "status": "pass"
+    },
+    {
+      "description": "FUNCTIONAL - Type a short/invalid password into password field",
+      "action": "type",
+      "status": "pass"
+    },
+    {
+      "description": "FUNCTIONAL - Click submit button with invalid credentials",
+      "action": "click",
+      "status": "pass"
+    },
+    {
+      "description": "FUNCTIONAL - Verify error message appears for invalid credentials",
+      "action": "assert_error_message",
+      "status": "fail"
+    },
+    {
+      "description": "Capture error state for invalid credential attempt",
+      "action": "screenshot",
+      "status": "pass"
+    },
+    {
+      "description": "FUNCTIONAL - Fill login form with valid test credentials and submit",
+      "action": "fill_form_positive",
+      "status": "pass"
+    },
+    {
+      "description": "Capture state after positive login attempt",
+      "action": "screenshot",
+      "status": "pass"
+    },
+    {
+      "description": "INTEGRATION - Check ShoppersStack main API/homepage returns 2xx",
+      "action": "api_check",
+      "status": "pass"
+    },
+    {
+      "description": "INTEGRATION - Verify the sign-in endpoint itself returns 2xx",
+      "action": "api_check",
+      "status": "pass"
+    },
+    {
+      "description": "SYSTEM E2E - Navigate back to sign-in page to begin full user journey",
+      "action": "navigate",
+      "status": "pass"
+    },
+    {
+      "description": "SYSTEM E2E - Confirm user is on the sign-in page to start the journey",
+      "action": "assert_url",
+      "status": "pass"
+    },
+    {
+      "description": "SYSTEM E2E - Hover over the sign-in button to check interactivity/tooltip",
+      "action": "hover",
+      "status": "pass"
+    },
+    {
+      "description": "SYSTEM E2E - Capture hover state on the sign-in button",
+      "action": "screenshot",
+      "status": "pass"
+    },
+    {
+      "description": "REGRESSION - Validate all links on the page return valid responses",
+      "action": "check_all_links",
+      "status": "warn"
+    },
+    {
+      "description": "REGRESSION - Final state screenshot for regression baseline comparison",
+      "action": "screenshot",
+      "status": "pass"
+    }
+  ]
+}

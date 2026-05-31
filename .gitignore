@@ -1,0 +1,23 @@
+# Environment / Secrets
+.env
+**/.env
+
+# Python
+python/venv/
+python/__pycache__/
+python/*.pyc
+python/.pytest_cache/
+
+# Java
+java/target/
+*.class
+*.jar
+
+# JavaScript
+js/node_modules/
+
+# Web
+python/web/node_modules/
+
+# Logs
+*.log

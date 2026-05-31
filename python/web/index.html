@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Test Agent — Claude + Playwright</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════════════ HEADER ══════════════════ -->
+  <header>
+    <div class="header-inner">
+      <div class="logo" onclick="location.reload()" style="cursor:pointer;">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="logo-title">AI Test Agent</div>
+          <div class="logo-sub">Powered by Claude + Playwright</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="server-status" id="server-status">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">Connecting...</span>
+        </div>
+        <div class="header-badge">Beta</div>
+      </div>
+    </div>
+
+    <!-- Auto-detected test chips -->
+    <div class="feature-bar">
+      <div class="header-inner" style="padding-top:0; padding-bottom:0;">
+        <div class="feature-chips">
+          <span class="chip">&#9889; Auto Page Scan</span>
+          <span class="chip">&#10003; Functional Tests</span>
+          <span class="chip">&#10003; Integration Tests</span>
+          <span class="chip">&#10003; System / E2E</span>
+          <span class="chip">&#10003; Regression Baseline</span>
+          <span class="chip">&#10003; Console Errors</span>
+          <span class="chip">&#10003; Performance</span>
+          <span class="chip">&#10003; API Check</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════ MAIN ══════════════════ -->
+  <main>
+
+    <!-- ── SMART TEST CARD ── -->
+    <div class="card sc-card" id="smart-card">
+
+      <!-- Top accent bar -->
+      <div class="sc-topbar"></div>
+
+      <!-- Badge + Heading -->
+      <div class="sc-badge">
+        <span class="sc-badge-dot"></span>
+        <span>AI-Powered Smart Test</span>
+      </div>
+      <h1 class="sc-h1">URL do &mdash; <span class="sc-hl">sab kuch test hoga</span></h1>
+      <p class="sc-sub">Page scan karke forms, APIs, navigation detect karo &mdash; Functional + Integration + System E2E + Regression ek click mein.</p>
+
+      <!-- URL field -->
+      <div class="sc-url-group">
+        <div class="sc-url-row">
+          <div class="sc-url-prefix">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <input id="smart-url" class="sc-url-input" type="text" placeholder="https://example.com" autocomplete="off" spellcheck="false" />
+        </div>
+        <input id="smart-task" class="sc-focus-input" type="text"
+          placeholder="Specific focus (optional) — e.g. login form test karo, payment check karo..." />
+        <button class="sc-run-btn" id="btn-smart">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Analyze &amp; Test Everything
+        </button>
+      </div>
+
+      <!-- 6 test-type cards -->
+      <div class="sc-grid">
+
+        <div class="sc-item" style="--ac:#22d3ee;--ab:rgba(6,182,212,0.12)">
+          <div class="sc-item-icon" style="background:rgba(6,182,212,0.15);color:#22d3ee">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="sc-item-title">Page Scan</div>
+          <div class="sc-item-desc">Forms, buttons, APIs &amp; nav links — live detect karta hai</div>
+        </div>
+
+        <div class="sc-item" style="--ac:#4ade80;--ab:rgba(34,197,94,0.12)">
+          <div class="sc-item-icon" style="background:rgba(34,197,94,0.15);color:#4ade80">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <div class="sc-item-title">Functional</div>
+          <div class="sc-item-desc">Har form ka negative + positive test, button clicks</div>
+        </div>
+
+        <div class="sc-item" style="--ac:#60a5fa;--ab:rgba(59,130,246,0.12)">
+          <div class="sc-item-icon" style="background:rgba(59,130,246,0.15);color:#60a5fa">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </div>
+          <div class="sc-item-title">Integration</div>
+          <div class="sc-item-desc">APIs, 3rd-party scripts, performance metrics</div>
+        </div>
+
+        <div class="sc-item" style="--ac:#c084fc;--ab:rgba(168,85,247,0.12)">
+          <div class="sc-item-icon" style="background:rgba(168,85,247,0.15);color:#c084fc">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="sc-item-title">System E2E</div>
+          <div class="sc-item-desc">Complete user journey — visit se goal tak simulate</div>
+        </div>
+
+        <div class="sc-item" style="--ac:#fbbf24;--ab:rgba(245,158,11,0.12)">
+          <div class="sc-item-icon" style="background:rgba(245,158,11,0.15);color:#fbbf24">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/></svg>
+          </div>
+          <div class="sc-item-title">Regression</div>
+          <div class="sc-item-desc">Pehle run mein baseline save, baad mein compare</div>
+        </div>
+
+        <div class="sc-item" style="--ac:#f472b6;--ab:rgba(236,72,153,0.12)">
+          <div class="sc-item-icon" style="background:rgba(236,72,153,0.15);color:#f472b6">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+          </div>
+          <div class="sc-item-title">HTML Report</div>
+          <div class="sc-item-desc">Full report with screenshots &amp; AI score</div>
+        </div>
+
+      </div>
+
+      <!-- Manual divider -->
+      <div class="sc-divider"><span>ya manual mode choose karo</span></div>
+
+      <!-- Manual buttons -->
+      <div class="sc-manual-row">
+        <button class="sc-mbtn" data-mode="prompt">&#9654; Prompt</button>
+        <button class="sc-mbtn" data-mode="functional">&#10003; Functional</button>
+        <button class="sc-mbtn" data-mode="integration">&#128279; Integration</button>
+        <button class="sc-mbtn" data-mode="system">&#128194; System E2E</button>
+        <button class="sc-mbtn" data-mode="regression">&#8635; Regression</button>
+        <button class="sc-mbtn" data-mode="crawl">&#128269; Crawl</button>
+      </div>
+    </div>
+
+    <!-- ── MANUAL MODE PANEL (hidden by default) ── -->
+    <div class="card hidden" id="manual-panel">
+      <div class="manual-panel-header">
+        <button class="back-btn" id="back-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Smart Mode pe wapas jao
+        </button>
+        <div class="manual-mode-label" id="manual-mode-label"></div>
+      </div>
+
+      <!-- PROMPT -->
+      <div id="form-prompt" class="form-section hidden">
+        <div class="field">
+          <label>Website URL <span class="field-hint">optional</span></label>
+          <div class="input-wrap"><span class="input-icon">&#127760;</span><input id="p-url" type="text" placeholder="https://example.com" /></div>
+        </div>
+        <div class="field">
+          <label>Test Task</label>
+          <textarea id="p-task" rows="3" placeholder="e.g. login form test karo, navigation check karo..."></textarea>
+        </div>
+        <button class="run-btn" id="btn-prompt">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Run Prompt Test
+        </button>
+      </div>
+
+      <!-- FUNCTIONAL -->
+      <div id="form-functional" class="form-section hidden">
+        <div class="field">
+          <label>Website URL</label>
+          <div class="input-wrap"><span class="input-icon">&#127760;</span><input id="fn-url" type="text" placeholder="https://example.com" /></div>
+        </div>
+        <div class="field">
+          <label>Feature to Test</label>
+          <textarea id="fn-task" rows="3" placeholder="e.g. login form validation, registration flow..."></textarea>
+        </div>
+        <button class="run-btn" id="btn-functional">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/></svg>
+          Run Functional Tests
+        </button>
+      </div>
+
+      <!-- INTEGRATION -->
+      <div id="form-integration" class="form-section hidden">
+        <div class="field">
+          <label>Website URL</label>
+          <div class="input-wrap"><span class="input-icon">&#127760;</span><input id="in-url" type="text" placeholder="https://example.com" /></div>
+        </div>
+        <div class="field">
+          <label>Focus (optional)</label>
+          <textarea id="in-task" rows="3" placeholder="e.g. payment gateway, Google Maps widget..."></textarea>
+        </div>
+        <button class="run-btn" id="btn-integration">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Run Integration Tests
+        </button>
+      </div>
+
+      <!-- SYSTEM E2E -->
+      <div id="form-system" class="form-section hidden">
+        <div class="field">
+          <label>Website URL</label>
+          <div class="input-wrap"><span class="input-icon">&#127760;</span><input id="sy-url" type="text" placeholder="https://example.com" /></div>
+        </div>
+        <div class="field">
+          <label>User Scenario</label>
+          <textarea id="sy-task" rows="3" placeholder="e.g. signup se login tak, product browse karke checkout..."></textarea>
+        </div>
+        <button class="run-btn" id="btn-system">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Run System Tests
+        </button>
+      </div>
+
+      <!-- REGRESSION -->
+      <div id="form-regression" class="form-section hidden">
+        <div class="field">
+          <label>Website URL</label>
+          <div class="input-wrap"><span class="input-icon">&#127760;</span><input id="rg-url" type="text" placeholder="https://example.com" /></div>
+        </div>
+        <div class="field">
+          <label>Suite Name</label>
+          <div class="input-wrap"><span class="input-icon">&#128196;</span><input id="rg-suite" type="text" placeholder="e.g. homepage-v1, login-suite" /></div>
+        </div>
+        <div class="field" style="display:flex;align-items:center;gap:10px;">
+          <input id="rg-save-baseline" type="checkbox" style="width:16px;height:16px;accent-color:#7c3aed;" />
+          <label for="rg-save-baseline" style="margin:0;cursor:pointer;">Force new baseline save</label>
+        </div>
+        <button class="run-btn" id="btn-regression">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/></svg>
+          Run Regression Tests
+        </button>
+      </div>
+
+      <!-- CRAWL -->
+      <div id="form-crawl" class="form-section hidden">
+        <div class="field">
+          <label>Website URL</label>
+          <div class="input-wrap"><span class="input-icon">&#127760;</span><input id="c-url" type="text" placeholder="https://example.com" /></div>
+        </div>
+        <div class="field">
+          <label>Max Pages &nbsp;<strong id="pages-val" class="range-val">20</strong></label>
+          <input id="c-pages" type="range" min="1" max="30" value="20" />
+          <div class="range-labels"><span>1 page</span><span>30 pages</span></div>
+        </div>
+        <button class="run-btn" id="btn-crawl">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Start Crawl
+        </button>
+      </div>
+    </div>
+
+    <!-- ── PROGRESS CARD ── -->
+    <div class="card hidden" id="progress-card">
+      <div class="progress-header">
+        <div class="section-label">
+          <span class="pulse-dot"></span> Live Progress
+        </div>
+        <div class="step-counter" id="step-counter"></div>
+      </div>
+      <div id="terminal">
+        <div id="terminal-lines"></div>
+        <span class="cursor">&#9608;</span>
+      </div>
+    </div>
+
+    <!-- ── RESULT CARD ── -->
+    <div class="card hidden" id="result-card">
+      <div class="section-label" id="result-label">Results</div>
+      <div id="result-stats" class="stats-row"></div>
+      <div id="result-extra"></div>
+      <div id="pass-bar-wrap" class="pass-bar-wrap hidden">
+        <div class="pass-bar">
+          <div class="pass-bar-fill" id="pass-bar-fill"></div>
+          <div class="warn-bar-fill" id="warn-bar-fill"></div>
+          <div class="fail-bar-fill" id="fail-bar-fill"></div>
+        </div>
+        <div class="pass-bar-labels" id="pass-bar-labels"></div>
+      </div>
+      <div class="result-actions" id="result-actions"></div>
+    </div>
+
+    <!-- ── RECENT REPORTS ── -->
+    <div class="card" id="reports-card">
+      <div class="reports-header">
+        <div class="section-label" style="margin-bottom:0;">Recent Reports</div>
+        <button class="refresh-btn" id="refresh-btn" title="Refresh">&#8635;</button>
+      </div>
+      <div class="report-tabs">
+        <button class="report-tab active" data-rtype="smart">Smart</button>
+        <button class="report-tab" data-rtype="prompt">Prompt</button>
+        <button class="report-tab" data-rtype="functional">Functional</button>
+        <button class="report-tab" data-rtype="integration">Integration</button>
+        <button class="report-tab" data-rtype="system">System</button>
+        <button class="report-tab" data-rtype="regression">Regression</button>
+        <button class="report-tab" data-rtype="crawl">Crawl</button>
+      </div>
+      <div id="reports-list"><div class="loading-text">Loading...</div></div>
+    </div>
+
+  </main>
+
+  <!-- ══════════════════ FOOTER ══════════════════ -->
+  <footer>
+    <span>AI Test Agent &bull; Claude + Playwright</span>
+    <span class="footer-cmd">Backend: <code>python server.py</code> &nbsp;|&nbsp; Port: <code>8000</code></span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

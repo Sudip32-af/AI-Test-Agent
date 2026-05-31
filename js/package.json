@@ -1,0 +1,14 @@
+{
+  "name": "js-selenium",
+  "version": "1.0.0",
+  "description": "Selenium WebDriver tests with Chromium in JavaScript",
+  "scripts": {
+    "test": "mocha --recursive tests/specs --timeout 60000"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.21.0"
+  },
+  "devDependencies": {
+    "mocha": "^10.4.0"
+  }
+}
