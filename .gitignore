@@ -21,3 +21,10 @@ python/web/node_modules/
 
 # Logs
 *.log
+
+# Reports (large generated files)
+python/reports/
+python/__pycache__/
+python/**/__pycache__/
+**/__pycache__/
+*.pyc
